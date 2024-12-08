@@ -18,29 +18,21 @@ def home():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     try:
-        # Проверяем тип контента и обрабатываем данные
+        # Обработка различных типов контента
         if request.content_type == 'application/json':
-            data = request.json  # JSON-данные из TradingView
-        elif request.content_type == 'application/x-www-form-urlencoded':
-            data = request.form.to_dict()  # Данные form-urlencoded
-        elif request.content_type == 'text/plain':
-            data = request.data.decode('utf-8')  # Текстовые данные
+            data = request.json
+        elif 'application/x-www-form-urlencoded' in request.content_type:
+            data = request.form.to_dict()
+        elif 'text/plain' in request.content_type:
+            data = request.data.decode('utf-8')
         else:
-            return "Unsupported Media Type", 415  # Ошибка для неподдерживаемого типа данных
+            data = request.data.decode('utf-8')  # В случае других форматов, преобразуем в строку
 
-        print(f"Полученные данные: {data}")  # Логируем входящие данные
+        # Логируем входящие данные
+        print(f"Полученные данные: {data}")  
 
-        # Обработка и отправка данных в Telegram
-        if isinstance(data, dict):
-            # Если это JSON или form-urlencoded, преобразуем в строку для отправки
-            message = f"🚨 Уведомление от TradingView:\n{data}"
-        elif isinstance(data, str):
-            # Если это текст, отправляем напрямую
-            message = f"🚨 Уведомление от TradingView:\n{data}"
-        else:
-            message = "⚠️ Получены неизвестные данные"
-
-        # Отправка сообщения в Telegram
+        # Отправка данных в Telegram
+        message = f"🚨 Уведомление от TradingView:\n{data}"
         bot.send_message(CHAT_ID, message)
         return "Уведомление обработано и отправлено", 200
 
